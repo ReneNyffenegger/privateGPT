@@ -172,3 +172,5 @@ cython_debug/
 
 # vscode
 .vscode/launch.json
+*.swp
+py-virtual-env

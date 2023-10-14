@@ -120,15 +120,15 @@ def process_documents(ignored_files: List[str] = []) -> List[Document]:
     """
     Load documents and split in chunks
     """
-    print(f"Loading documents from {source_directory}")
+    print(f"  tq84: process_documents - Loading documents from {source_directory}")
     documents = load_documents(source_directory, ignored_files)
     if not documents:
         print("No new documents to load")
         exit(0)
-    print(f"Loaded {len(documents)} new documents from {source_directory}")
+    print(f"  tq84: process_documents - Loaded {len(documents)} new documents from {source_directory}")
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     documents = text_splitter.split_documents(documents)
-    print(f"Split into {len(documents)} chunks of text (max. {chunk_size} tokens each)")
+    print(f"  tq84: process_documents - Split into {len(documents)} chunks of text (max. {chunk_size} tokens each)")
     return documents
 
 def batch_chromadb_insertions(chroma_client: API, documents: List[Document]) -> List[Document]:
@@ -151,12 +151,14 @@ def does_vectorstore_exist(persist_directory: str, embeddings: HuggingFaceEmbedd
     return True
 
 def main():
+    print('main')
     # Create embeddings
     embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
     # Chroma client
     chroma_client = chromadb.PersistentClient(settings=CHROMA_SETTINGS , path=persist_directory)
 
     if does_vectorstore_exist(persist_directory, embeddings):
+        print('vectorstore exists')
         # Update and store locally vectorstore
         print(f"Appending to existing vectorstore at {persist_directory}")
         db = Chroma(persist_directory=persist_directory, embedding_function=embeddings, client_settings=CHROMA_SETTINGS, client=chroma_client)
@@ -166,6 +168,7 @@ def main():
         for batched_chromadb_insertion in batch_chromadb_insertions(chroma_client, documents):
             db.add_documents(batched_chromadb_insertion)
     else:
+        print('vectorstore does not exist')
         # Create and store locally vectorstore
         print("Creating new vectorstore")
         documents = process_documents()
