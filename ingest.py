@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+
+import sys
+sys.path.insert(0, '/home/rene/github/langchain/libs/langchain')
+
 import os
 import glob
 from typing import List
@@ -97,6 +101,7 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
     """
     Loads all documents from the source documents directory, ignoring specified files
     """
+    print(f"    tq84: load_documents");
     all_files = []
     for ext in LOADER_MAPPING:
         all_files.extend(
@@ -123,7 +128,7 @@ def process_documents(ignored_files: List[str] = []) -> List[Document]:
     print(f"  tq84: process_documents - Loading documents from {source_directory}")
     documents = load_documents(source_directory, ignored_files)
     if not documents:
-        print("No new documents to load")
+        print("  tq84: process_documents - No new documents to load")
         exit(0)
     print(f"  tq84: process_documents - Loaded {len(documents)} new documents from {source_directory}")
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
@@ -135,9 +140,11 @@ def batch_chromadb_insertions(chroma_client: API, documents: List[Document]) -> 
     """
     Split the total documents to be inserted into batches of documents that the local chroma client can process
     """
+    print(f"  tq84: batch_chromadb_insertions")
     # Get max batch size.
     max_batch_size = chroma_client.max_batch_size
     for i in range(0, len(documents), max_batch_size):
+        print(f"  tq84: batch_chromadb_insertions, yielding {i} (max_batch_size={max_batch_size})")
         yield documents[i:i + max_batch_size]
 
 
@@ -145,13 +152,16 @@ def does_vectorstore_exist(persist_directory: str, embeddings: HuggingFaceEmbedd
     """
     Checks if vectorstore exists
     """
+    print('  does_vectorstore_exist')
     db = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
     if not db.get()['documents']:
         return False
     return True
 
 def main():
-    print('main')
+    print(f'main')
+    print(f'  embeddings_model_name={embeddings_model_name}')
+    print(f'  persist_directory={persist_directory}')
     # Create embeddings
     embeddings = HuggingFaceEmbeddings(model_name=embeddings_model_name)
     # Chroma client
